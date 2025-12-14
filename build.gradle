@@ -1,24 +1,23 @@
 plugins {
     id 'java'
     id 'application'
-    id 'org.openjfx.javafxplugin' version '0.1.0'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
-
 }
+
+group = 'snake'
+version = '1.0'
 
 repositories {
     mavenCentral()
 }
 
-
-javafx {
-    version = "17.0.1"
-    modules = ['javafx.controls', 'javafx.fxml']
-
+dependencies {
+    implementation "org.openjfx:javafx-base:17.0.1:linux"
+    implementation "org.openjfx:javafx-graphics:17.0.1:linux"
+    implementation "org.openjfx:javafx-controls:17.0.1:linux"
 }
 
 application {
-    mainClass = 'SnakeApp'
+    mainClass = 'Main'
 }
 
 java {
@@ -31,7 +30,19 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
-shadowJar {
-    archiveClassifier.set('') // чтобы без суффикса "-all"
-    mergeServiceFiles()
+jar {
+    archiveFileName = "snake-linux.jar"
+
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+
+    manifest {
+        attributes 'Main-Class': 'Main'
+    }
+
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

@@ -1,5 +1,3 @@
-
-
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -14,91 +12,90 @@ import javafx.scene.input.KeyCombination;
 
 public class SnakeApp extends Application {
 
-    private static final int CELL_SIZE = 20;
-    private static final int FIELD_WIDTH = 20;
-    private static final int FIELD_HEIGHT = 15;
+    private static final int SEGMENT_DIMENSION = 20;
+    private static final int GRID_COLUMNS = 20;
+    private static final int GRID_ROWS = 15;
 
-    private Snake snake;
-    private Pane root;
-    private long frameDelayNanos = 200_000_000L;
+    private Snake gameSnake;
+    private Pane gameCanvas;
+    private long intervalBetweenFrames = 200_000_000L;
 
     @Override
-    public void start(Stage primaryStage) {
-        snake = new Snake(FIELD_WIDTH, FIELD_HEIGHT);
-        root = new Pane();
-        root.setPrefSize(FIELD_WIDTH * CELL_SIZE, FIELD_HEIGHT * CELL_SIZE);
+    public void start(Stage mainWindow) {
+        gameSnake = new Snake(GRID_COLUMNS, GRID_ROWS);
+        gameCanvas = new Pane();
+        gameCanvas.setPrefSize(GRID_COLUMNS * SEGMENT_DIMENSION, GRID_ROWS * SEGMENT_DIMENSION);
 
-        drawBorders();
+        drawBorderWalls();
 
-        Scene scene = new Scene(root, Color.BLACK);
+        Scene mainScene = new Scene(gameCanvas, Color.BLACK);
 
-
-        scene.setOnKeyPressed(event -> {
-            KeyCode key = event.getCode();
-            if (key == KeyCode.ADD || key == KeyCode.EQUALS) {
-                increaseSpeed();
-            } else if (key == KeyCode.SUBTRACT || key == KeyCode.MINUS) {
-                decreaseSpeed();
+        mainScene.setOnKeyPressed(keyEvent -> {
+            KeyCode pressedKey = keyEvent.getCode();
+            if (pressedKey == KeyCode.ADD || pressedKey == KeyCode.EQUALS) {
+                makeFaster();
+            } else if (pressedKey == KeyCode.SUBTRACT || pressedKey == KeyCode.MINUS) {
+                makeSlower();
             }
         });
 
-
-        scene.getAccelerators().put(
+        mainScene.getAccelerators().put(
                 new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN),
-                () -> primaryStage.close()
+                () -> mainWindow.close()
         );
 
-        primaryStage.setTitle("Змейка (Ctrl+D — выход, +/- — скорость)");
-        primaryStage.setScene(scene);
-        primaryStage.setResizable(false);
-        primaryStage.show();
+        mainWindow.setTitle("Змейка (Ctrl+D — выход, +/- — скорость)");
+        mainWindow.setScene(mainScene);
+        mainWindow.setResizable(false);
+        mainWindow.show();
 
-        root.requestFocus();
+        gameCanvas.requestFocus();
 
         new AnimationTimer() {
-            private long lastUpdate = 0;
+            private long previousFrameTime = 0;
             @Override
-            public void handle(long now) {
-                if (now - lastUpdate > frameDelayNanos) {
-                    update();
-                    lastUpdate = now;
+            public void handle(long currentTime) {
+                if (currentTime - previousFrameTime > intervalBetweenFrames) {
+                    refreshDisplay();
+                    previousFrameTime = currentTime;
                 }
             }
         }.start();
     }
 
-    private void increaseSpeed() {
-        if (frameDelayNanos > 50_000_000L) frameDelayNanos -= 25_000_000L;
+    private void makeFaster() {
+        if (intervalBetweenFrames > 50_000_000L) intervalBetweenFrames -= 25_000_000L;
     }
 
-    private void decreaseSpeed() {
-        if (frameDelayNanos < 500_000_000L) frameDelayNanos += 25_000_000L;
+    private void makeSlower() {
+        if (intervalBetweenFrames < 500_000_000L) intervalBetweenFrames += 25_000_000L;
     }
 
-    private void drawBorders() {
-        for (int y = 0; y < FIELD_HEIGHT; y++) {
-            drawCell(0, y, Color.GRAY);
-            drawCell(FIELD_WIDTH - 1, y, Color.GRAY);
+    private void drawBorderWalls() {
+        for (int row = 0; row < GRID_ROWS; row++) {
+            drawGridSquare(0, row, Color.GRAY);
+            drawGridSquare(GRID_COLUMNS - 1, row, Color.GRAY);
         }
-        for (int x = 0; x < FIELD_WIDTH; x++) {
-            drawCell(x, 0, Color.GRAY);
-            drawCell(x, FIELD_HEIGHT - 1, Color.GRAY);
-        }
-    }
-
-    private void update() {
-        root.getChildren().clear();
-        drawBorders();
-        snake.move(FIELD_WIDTH, FIELD_HEIGHT);
-        for (Cell cell : snake.getBody()) {
-            drawCell(cell.getX(), cell.getY(), Color.LIMEGREEN);
+        for (int col = 0; col < GRID_COLUMNS; col++) {
+            drawGridSquare(col, 0, Color.GRAY);
+            drawGridSquare(col, GRID_ROWS - 1, Color.GRAY);
         }
     }
 
-    private void drawCell(int x, int y, Color color) {
-        Rectangle rect = new Rectangle(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-        rect.setFill(color);
-        root.getChildren().add(rect);
+    private void refreshDisplay() {
+        gameCanvas.getChildren().clear();
+        drawBorderWalls();
+        gameSnake.move(GRID_COLUMNS, GRID_ROWS);
+        for (Cell segment : gameSnake.getBody()) {
+            drawGridSquare(segment.getX(), segment.getY(), Color.LIMEGREEN);
+        }
+    }
+
+    private void drawGridSquare(int column, int row, Color fillColor) {
+        Rectangle square = new Rectangle(column * SEGMENT_DIMENSION, row * SEGMENT_DIMENSION,
+                SEGMENT_DIMENSION, SEGMENT_DIMENSION);
+        square.setFill(fillColor);
+        gameCanvas.getChildren().add(square);
     }
 
     public static void main(String[] args) {
