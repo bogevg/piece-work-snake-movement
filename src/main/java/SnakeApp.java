@@ -20,7 +20,7 @@ public class SnakeApp extends Application {
 
     private Snake snake;
     private Pane root;
-    private long frameDelayNanos = 200_000_000L; // 200 мс
+    private long frameDelayNanos = 200_000_000L;
 
     @Override
     public void start(Stage primaryStage) {
@@ -32,7 +32,7 @@ public class SnakeApp extends Application {
 
         Scene scene = new Scene(root, Color.BLACK);
 
-        // Управление скоростью
+
         scene.setOnKeyPressed(event -> {
             KeyCode key = event.getCode();
             if (key == KeyCode.ADD || key == KeyCode.EQUALS) {
