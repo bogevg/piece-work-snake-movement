@@ -8,11 +8,13 @@ public class Snake {
 
     public Snake(int fieldWidth, int fieldHeight) {
         snakeCoordins = new LinkedList<>();
-        direction = new Cell(1, 1);
+        direction = new Cell(
+                Math.random() < 0.5 ? -1 : 1,
+                Math.random() < 0.5 ? -1 : 1
+        );
 
-
-        int headX = (int) (Math.random() * (fieldWidth - 2)) + 1;
-        int headY = (int) (Math.random() * (fieldHeight - 2)) + 1;
+        int headX = fieldWidth / 2;
+        int headY = fieldHeight /2;
 
         snakeCoordins.add(new Cell(headX, headY));
         for (int i = 1; i < 5; i++) {
